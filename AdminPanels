@@ -1,0 +1,1712 @@
+local player = game.Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+local TS = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
+
+-- Button
+local function MakeButton(parent, size, pos, text, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = size
+    btn.Position = pos
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 16
+    btn.Text = text
+    btn.AutoButtonColor = false
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60) end)
+    btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) end)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- Build GUI
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "AdminPanel"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 535, 0, 670)
+frame.Position = UDim2.new(0.5, -230, 0.2, 0)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Name = "CreditLabel"
+creditLabel.Parent = frame
+creditLabel.Size = UDim2.new(0, 200, 0, 20)
+creditLabel.Position = UDim2.new(0, 10, 1, -30) -- Bottom-left, adjust Y offset as needed
+creditLabel.BackgroundTransparency = 1
+creditLabel.Text = "Built by: Asifis"
+creditLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+creditLabel.TextSize = 14
+creditLabel.Font = Enum.Font.Gotham
+creditLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Text = "✨ Asifis's Admin Panel ✨"
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.Position = UDim2.new(0, 0, 0, 5)  -- near the top
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 26
+titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+titleLabel.Parent = frame
+
+-- Username Label (right under the title, no extra space)
+local player = game.Players.LocalPlayer
+local usernameLabel = Instance.new("TextLabel")
+usernameLabel.Text = "User: " .. player.Name
+usernameLabel.Size = UDim2.new(1, 0, 0, 20)
+usernameLabel.Position = UDim2.new(0, 0, 0, 40)
+usernameLabel.BackgroundTransparency = 1
+usernameLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+usernameLabel.Font = Enum.Font.Gotham
+usernameLabel.TextSize = 14
+usernameLabel.TextXAlignment = Enum.TextXAlignment.Center
+usernameLabel.Parent = frame
+
+-- Minimize Button
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -35, 0, 5)  -- top right, 5px down and 35px left from right edge
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+minimizeBtn.Text = "—"  -- a simple dash for minimize
+minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 20
+minimizeBtn.AutoButtonColor = false
+minimizeBtn.Parent = frame
+Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0, 5)
+
+
+local playerGui = player:WaitForChild("PlayerGui")
+
+local maximizeGui = Instance.new("ScreenGui", playerGui)
+maximizeGui.Name = "MaximizeGui"
+maximizeGui.ResetOnSpawn = false
+
+local maximizeBtn = Instance.new("TextButton")
+maximizeBtn.Size = UDim2.new(0, 120, 0, 35)
+maximizeBtn.Position = UDim2.new(0.5, -60, 0, 10)  -- top center, 10px from top
+maximizeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+maximizeBtn.Text = "Maximize"
+maximizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+maximizeBtn.Font = Enum.Font.GothamBold
+maximizeBtn.TextSize = 18
+maximizeBtn.AutoButtonColor = false
+maximizeBtn.Visible = false  -- starts hidden
+maximizeBtn.Parent = maximizeGui
+Instance.new("UICorner", maximizeBtn).CornerRadius = UDim.new(0, 6)
+
+-- Minimize behavior
+minimizeBtn.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    maximizeBtn.Visible = true
+end)
+
+-- Maximize behavior
+maximizeBtn.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    maximizeBtn.Visible = false
+end)
+
+
+-- Tabs container
+local tabsFrame = Instance.new("Frame", frame)
+tabsFrame.Size = UDim2.new(1, -20, 0, 35)
+tabsFrame.Position = UDim2.new(0, 10, 0, 60)
+tabsFrame.BackgroundTransparency = 1
+
+local tabLayout = Instance.new("UIListLayout", tabsFrame)
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+tabLayout.Padding = UDim.new(0, 6)
+
+
+local tabs = {"Commands", "Misc", "Scripts", "Fun"}
+local tabButtons, contents = {}, {}
+
+for i, name in ipairs(tabs) do
+    local btn = Instance.new("TextButton", tabsFrame)
+    btn.Size = UDim2.new(1/#tabs, -6, 1, 0)
+    btn.Position = UDim2.new((i - 1)/#tabs, (i - 1)*6, 0, 0)
+    btn.Text = name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 18
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    tabButtons[name] = btn
+
+    local cont = Instance.new("Frame", frame)
+    cont.Size = UDim2.new(1, -20, 1, -190)
+    cont.Position = UDim2.new(0, 10, 0, 100)
+    cont.BackgroundTransparency = 1
+    cont.Visible = false
+    contents[name] = cont
+
+    local layout = Instance.new("UIListLayout", cont)
+    layout.Padding = UDim.new(0, 8)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+    btn.MouseButton1Click:Connect(function()
+        for _, nm in ipairs(tabs) do
+            tabButtons[nm].BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            tabButtons[nm].TextColor3 = Color3.fromRGB(180, 180, 180)
+            contents[nm].Visible = false
+        end
+        btn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        contents[name].Visible = true
+
+        -- Hide speed and jump UIs when leaving Commands tab
+        if name ~= "Commands" then
+            speedBlock.Visible = false
+            toggles["Speed"] = false
+            toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+            jumpBlock.Visible = false
+            toggles["Jump Power"] = false
+            toggleJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        end
+    end)
+end
+
+-- Default tab is Commands
+tabButtons["Commands"].BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+tabButtons["Commands"].TextColor3 = Color3.new(1, 1, 1)
+contents["Commands"].Visible = true
+
+-- Toggles helper
+local toggles = {}
+local function makeToggle(name, action)
+    local btn = Instance.new("TextButton", contents["Commands"])
+    btn.Size = UDim2.new(0.9, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 16
+    btn.Text = name
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.AutoButtonColor = false
+
+    toggles[name] = false
+    btn.MouseButton1Click:Connect(function()
+        toggles[name] = not toggles[name]
+        btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(40, 40, 40)
+        action(toggles[name])
+    end)
+
+    return btn
+end
+
+-- Speed GUI
+local speedBlock = Instance.new("Frame", contents["Commands"])
+speedBlock.Size = UDim2.new(0.9, 0, 0, 120)
+speedBlock.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+speedBlock.LayoutOrder = 100
+Instance.new("UICorner", speedBlock).CornerRadius = UDim.new(0, 10)
+speedBlock.Visible = false
+
+local speedLabel = Instance.new("TextLabel", speedBlock)
+speedLabel.Size = UDim2.new(0.9, 0, 0, 24)
+speedLabel.Position = UDim2.new(0.05, 0, 0, 8)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "Set Walk Speed (8 to 250):"
+speedLabel.TextColor3 = Color3.new(1,1,1)
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.TextSize = 16
+speedLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local speedBox = Instance.new("TextBox", speedBlock)
+speedBox.Size = UDim2.new(0.9, 0, 0, 30)
+speedBox.Position = UDim2.new(0.05, 0, 0, 40)
+speedBox.PlaceholderText = "Default: 16"
+speedBox.ClearTextOnFocus = true
+speedBox.Text = ""
+speedBox.Font = Enum.Font.Gotham
+speedBox.TextSize = 18
+speedBox.TextColor3 = Color3.new(1,1,1)
+speedBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Instance.new("UICorner", speedBox).CornerRadius = UDim.new(0, 6)
+
+local setSpeedBtn = MakeButton(speedBlock, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.05, 0, 0, 80), "Set", function()
+    local val = tonumber(speedBox.Text)
+    if val and val >= 8 and val <= 250 then
+        local hum = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+        if hum then
+            hum.WalkSpeed = val
+        end
+    else
+        speedBox.Text = ""
+        speedBox.PlaceholderText = "Invalid input! Use 8-250"
+    end
+end)
+
+local closeSpeedBtn = MakeButton(speedBlock, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.55, 0, 0, 80), "Close", function()
+    speedBlock.Visible = false
+    toggles["Speed"] = false
+    toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+end)
+
+speedBlock.Parent = contents["Commands"]
+
+-- Jump Power GUI
+local jumpBlock = Instance.new("Frame", contents["Commands"])
+jumpBlock.Size = UDim2.new(0.8, 0, 0, 120)
+jumpBlock.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+jumpBlock.LayoutOrder = 110
+Instance.new("UICorner", jumpBlock).CornerRadius = UDim.new(0, 10)
+jumpBlock.Visible = false
+
+local jumpLabel = Instance.new("TextLabel", jumpBlock)
+jumpLabel.Size = UDim2.new(0.9, 0, 0, 24)
+jumpLabel.Position = UDim2.new(0.05, 0, 0, 8)
+jumpLabel.BackgroundTransparency = 1
+jumpLabel.Text = "Set Jump Power (30 to 250):"
+jumpLabel.TextColor3 = Color3.new(1,1,1)
+jumpLabel.Font = Enum.Font.Gotham
+jumpLabel.TextSize = 16
+jumpLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local jumpBox = Instance.new("TextBox", jumpBlock)
+jumpBox.Size = UDim2.new(0.9, 0, 0, 30)
+jumpBox.Position = UDim2.new(0.05, 0, 0, 40)
+jumpBox.PlaceholderText = "Default: 50"
+jumpBox.ClearTextOnFocus = true
+jumpBox.Text = ""
+jumpBox.Font = Enum.Font.Gotham
+jumpBox.TextSize = 18
+jumpBox.TextColor3 = Color3.new(1,1,1)
+jumpBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Instance.new("UICorner", jumpBox).CornerRadius = UDim.new(0, 6)
+
+local setJumpBtn = MakeButton(jumpBlock, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.05, 0, 0, 80), "Set", function()
+    local val = tonumber(jumpBox.Text)
+    if val and val >= 30 and val <= 250 then
+        local hum = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+        if hum then
+            hum.JumpPower = val
+        end
+    else
+        jumpBox.Text = ""
+        jumpBox.PlaceholderText = "Invalid input! Use 30-250"
+    end
+end)
+
+local closeJumpBtn = MakeButton(jumpBlock, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.55, 0, 0, 80), "Close", function()
+    jumpBlock.Visible = false
+    toggles["Jump Power"] = false
+    toggleJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+end)
+
+jumpBlock.Parent = contents["Commands"]
+
+-- Toggle buttons for Speed and Jump Power inside Commands tab
+local toggleSpeedBtn = makeToggle("⚡ Speed", function(state)
+    speedBlock.Visible = state
+end)
+
+local toggleJumpBtn = makeToggle("⬆ Jump Power", function(state)
+    jumpBlock.Visible = state
+end)
+
+
+makeToggle("👻 Invisible", function(state)
+    local char = player.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+    local head = char:FindFirstChild("Head")
+    local torso = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
+    if not humanoid or not head or not torso then return end
+
+    if state then
+        if _G.invisibleGrayPart then
+            _G.invisibleGrayPart:Destroy()
+            _G.invisibleGrayPart = nil
+        end
+
+        -- Hide hats, store parents
+        _G.invisibleHats = {}
+        for _, hat in pairs(char:GetChildren()) do
+            if hat:IsA("Accessory") then
+                _G.invisibleHats[hat] = hat.Parent
+                hat.Parent = nil
+            end
+        end
+
+        -- Hide face decals (transparency to 1)
+        for _, decal in pairs(head:GetChildren()) do
+            if decal:IsA("Decal") then
+                decal.Transparency = 1
+            end
+        end
+
+        -- Make all BaseParts transparent and non-collidable
+        for _, part in pairs(char:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 1
+                part.CanCollide = false
+            end
+        end
+
+        -- Hide humanoid name/health
+        humanoid.NameDisplayDistance = 0
+        humanoid.HealthDisplayDistance = 0
+        humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+
+    else
+        -- Restore hats
+        for hat, parent in pairs(_G.invisibleHats or {}) do
+            if hat and parent then
+                hat.Parent = char
+            end
+        end
+        _G.invisibleHats = nil
+
+        -- Restore humanoid display settings
+        humanoid.NameDisplayDistance = 100
+        humanoid.HealthDisplayDistance = 100
+        humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+
+        -- Restore face decals (transparency to 0)
+        for _, decal in pairs(head:GetChildren()) do
+            if decal:IsA("Decal") then
+                decal.Transparency = 0
+            end
+        end
+
+        -- Restore all BaseParts transparency and collisions
+        for _, part in pairs(char:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+                part.CanCollide = true
+            end
+        end
+
+        -- Reset humanoid state to Running to force visibility update
+        humanoid:ChangeState(Enum.HumanoidStateType.Running)
+
+        -- Add gray part if missing
+        if torso and (not _G.invisibleGrayPart or not _G.invisibleGrayPart.Parent) then
+            local grayPart = Instance.new("Part")
+            grayPart.Name = "InvisibleGrayPart"
+            grayPart.Size = torso.Size
+            grayPart.Transparency = 0.5
+            grayPart.BrickColor = BrickColor.new("Medium stone grey")
+            grayPart.Anchored = false
+            grayPart.CanCollide = true
+            grayPart.CFrame = torso.CFrame
+            grayPart.Parent = char
+
+            local weld = Instance.new("WeldConstraint")
+            weld.Part0 = grayPart
+            weld.Part1 = torso
+            weld.Parent = grayPart
+
+            _G.invisibleGrayPart = grayPart
+        end
+    end
+end)
+
+
+
+
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+local funSection = contents["Fun"]  -- Your Fun tab container
+
+-- Create a frame for FPS counter
+local fpsFrame = Instance.new("Frame")
+fpsFrame.Size = UDim2.new(0, 140, 0, 26)
+fpsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+fpsFrame.Position = UDim2.new(0, 0, 0, 60)  -- Position below other buttons
+fpsFrame.Parent = funSection
+Instance.new("UICorner", fpsFrame).CornerRadius = UDim.new(0, 6)
+
+local fpsLabel = Instance.new("TextLabel")
+fpsLabel.Size = UDim2.new(1, 0, 1, 0)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+fpsLabel.Font = Enum.Font.Gotham
+fpsLabel.TextSize = 16
+fpsLabel.Text = "FPS: Calculating..."
+fpsLabel.Parent = fpsFrame
+
+local lastTick = tick()
+local frameCount = 0
+local fps = 0
+
+RunService.RenderStepped:Connect(function()
+    frameCount += 1
+    local now = tick()
+    if now - lastTick >= 1 then
+        fps = frameCount
+        frameCount = 0
+        lastTick = now
+        fpsLabel.Text = "FPS: "..fps
+    end
+end)
+
+
+
+-- Fly toggle - restored old working code, with emoji
+makeToggle("🕊 Fly", function(state)
+    if state then
+        local char = player.Character
+        if not char then return end
+        local hum = char:FindFirstChildWhichIsA("Humanoid")
+        if not hum then return end
+
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Name = "FlyVelocity"
+        bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        bodyVelocity.Velocity = Vector3.new(0,0,0)
+        bodyVelocity.Parent = hrp
+
+        local flyConnection
+        flyConnection = RS.Heartbeat:Connect(function()
+            if not toggles["🕊 Fly"] then
+                bodyVelocity:Destroy()
+                flyConnection:Disconnect()
+                return
+            end
+
+            local vel = Vector3.new(0, 0, 0)
+            if UIS:IsKeyDown(Enum.KeyCode.W) then
+                vel = vel + workspace.CurrentCamera.CFrame.LookVector * 50
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then
+                vel = vel - workspace.CurrentCamera.CFrame.LookVector * 50
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then
+                vel = vel - workspace.CurrentCamera.CFrame.RightVector * 50
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then
+                vel = vel + workspace.CurrentCamera.CFrame.RightVector * 50
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.Space) then
+                vel = vel + Vector3.new(0, 50, 0)
+            end
+            if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
+                vel = vel - Vector3.new(0, 50, 0)
+            end
+
+            bodyVelocity.Velocity = vel
+        end)
+    else
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            local flyVel = char.HumanoidRootPart:FindFirstChild("FlyVelocity")
+            if flyVel then flyVel:Destroy() end
+        end
+    end
+end)
+
+-- Services
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Infinite Jump Variables
+local infJumpEnabled = false
+local infJumpConn
+
+-- UI Section
+local funSection = contents["Fun"]
+
+-- Container Frame
+local jumpSection = Instance.new("Frame")
+jumpSection.Size = UDim2.new(1, -20, 0, 60)
+jumpSection.BackgroundTransparency = 1
+jumpSection.Parent = funSection
+
+-- Label
+local jumpLabel = Instance.new("TextLabel")
+jumpLabel.Text = "🪂 Infinite Jump"
+jumpLabel.Size = UDim2.new(1, 0, 0, 20)
+jumpLabel.BackgroundTransparency = 1
+jumpLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpLabel.Font = Enum.Font.GothamBold
+jumpLabel.TextSize = 16
+jumpLabel.TextXAlignment = Enum.TextXAlignment.Left
+jumpLabel.Parent = jumpSection
+
+-- Toggle Button
+local jumpToggle = Instance.new("TextButton")
+jumpToggle.Size = UDim2.new(0, 140, 0, 26)
+jumpToggle.Position = UDim2.new(0, 0, 0, 25)
+jumpToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+jumpToggle.Text = "Toggle On/Off"
+jumpToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpToggle.Font = Enum.Font.Gotham
+jumpToggle.TextSize = 14
+jumpToggle.AutoButtonColor = false
+jumpToggle.Parent = jumpSection
+Instance.new("UICorner", jumpToggle).CornerRadius = UDim.new(0, 6)
+
+-- Functionality
+jumpToggle.MouseButton1Click:Connect(function()
+    infJumpEnabled = not infJumpEnabled
+
+    -- Visual Feedback
+    jumpToggle.BackgroundColor3 = infJumpEnabled and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(40, 40, 40)
+    jumpToggle.Text = infJumpEnabled and "Infinite Jump On" or "Toggle On/Off"
+
+    if infJumpEnabled then
+        infJumpConn = UserInputService.JumpRequest:Connect(function()
+            if player and player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+                player.Character:FindFirstChildWhichIsA("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end)
+    else
+        if infJumpConn then
+            infJumpConn:Disconnect()
+            infJumpConn = nil
+        end
+    end
+end)
+
+
+local Players = game:GetService("Players")
+local funSection = contents["Fun"] -- Your Fun tab container
+
+local clothesRemoved = false
+local removedItemsByPlayer = {}
+
+-- Create frame section for clothes toggle
+local clothesSection = Instance.new("Frame")
+clothesSection.Size = UDim2.new(1, -20, 0, 60)
+clothesSection.BackgroundTransparency = 1
+clothesSection.Parent = funSection
+
+local clothesLabel = Instance.new("TextLabel")
+clothesLabel.Text = "👕 Remove All Clothes"
+clothesLabel.Size = UDim2.new(1, 0, 0, 20)
+clothesLabel.BackgroundTransparency = 1
+clothesLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+clothesLabel.Font = Enum.Font.GothamBold
+clothesLabel.TextSize = 16
+clothesLabel.Parent = clothesSection
+clothesLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local clothesToggle = Instance.new("TextButton")
+clothesToggle.Size = UDim2.new(0, 140, 0, 26)
+clothesToggle.Position = UDim2.new(0, 0, 0, 25)
+clothesToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+clothesToggle.Text = "Toggle On/Off"
+clothesToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+clothesToggle.Font = Enum.Font.Gotham
+clothesToggle.TextSize = 14
+clothesToggle.AutoButtonColor = false
+clothesToggle.Parent = clothesSection
+Instance.new("UICorner", clothesToggle).CornerRadius = UDim.new(0, 6)
+
+local function removeClothesFromChar(char)
+    if not char then return {} end
+    local removed = {}
+    for _, item in ipairs(char:GetChildren()) do
+        if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") then
+            table.insert(removed, item)
+            item.Parent = nil
+        end
+    end
+    return removed
+end
+
+local function restoreClothesToChar(char, items)
+    if not char or not items then return end
+    for _, item in ipairs(items) do
+        item.Parent = char
+    end
+end
+
+local function removeAllPlayersClothes()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr.Character then
+            removedItemsByPlayer[plr] = removeClothesFromChar(plr.Character)
+        end
+    end
+end
+
+local function restoreAllPlayersClothes()
+    for plr, items in pairs(removedItemsByPlayer) do
+        if plr.Character then
+            restoreClothesToChar(plr.Character, items)
+        end
+        removedItemsByPlayer[plr] = nil
+    end
+end
+
+-- Toggle function
+clothesToggle.MouseButton1Click:Connect(function()
+    clothesRemoved = not clothesRemoved
+    if clothesRemoved then
+        clothesToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        clothesToggle.Text = "Clothes Removed"
+        removeAllPlayersClothes()
+    else
+        clothesToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        clothesToggle.Text = "Toggle On/Off"
+        restoreAllPlayersClothes()
+    end
+end)
+
+-- Handle new player characters and respawns
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(char)
+        if clothesRemoved then
+            task.wait(1) -- wait for character to load clothes
+            removedItemsByPlayer[plr] = removeClothesFromChar(char)
+        end
+    end)
+end)
+
+for _, plr in pairs(Players:GetPlayers()) do
+    plr.CharacterAdded:Connect(function(char)
+        if clothesRemoved then
+            task.wait(1)
+            removedItemsByPlayer[plr] = removeClothesFromChar(char)
+        end
+    end)
+end
+
+
+
+-- Spider Toggle
+makeToggle("🕷 Spider", function(state)
+    local climbConn
+    if state then
+        local char = player.Character
+        if not char then return end
+
+        local hrp = char:WaitForChild("HumanoidRootPart")
+
+        local bodyVel = Instance.new("BodyVelocity")
+        bodyVel.Name = "SpiderVelocity"
+        bodyVel.MaxForce = Vector3.new(0, 50000, 0)
+        bodyVel.Velocity = Vector3.zero
+        bodyVel.Parent = hrp
+
+        climbConn = RS.Heartbeat:Connect(function()
+            if not toggles["🕷 Spider"] then
+                bodyVel:Destroy()
+                climbConn:Disconnect()
+                return
+            end
+
+            local rayOrigin = hrp.Position
+            local rayDirection = hrp.CFrame.LookVector * 3
+
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterDescendantsInstances = {char}
+            raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+            local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+
+            -- Only climb when facing a wall and pressing W
+            if result and UIS:IsKeyDown(Enum.KeyCode.W) then
+                bodyVel.Velocity = Vector3.new(0, 50, 0)
+            else
+                bodyVel.Velocity = Vector3.zero
+            end
+        end)
+    else
+        if climbConn then climbConn:Disconnect() end
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            local vel = char.HumanoidRootPart:FindFirstChild("SpiderVelocity")
+            if vel then vel:Destroy() end
+        end
+    end
+end)
+
+-- Click TP Section
+local tpSection = Instance.new("Frame")
+tpSection.Size = UDim2.new(1, -20, 0, 60)
+tpSection.BackgroundTransparency = 1
+tpSection.Parent = contents["Fun"]
+
+-- Label
+local tpLabel = Instance.new("TextLabel")
+tpLabel.Text = "🖱️ Click TP Tool"
+tpLabel.Size = UDim2.new(1, 0, 0, 20)
+tpLabel.BackgroundTransparency = 1
+tpLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpLabel.Font = Enum.Font.GothamBold
+tpLabel.TextSize = 16
+tpLabel.TextXAlignment = Enum.TextXAlignment.Left
+tpLabel.Parent = tpSection
+
+-- Give Tool Button
+local giveToolBtn = Instance.new("TextButton")
+giveToolBtn.Size = UDim2.new(0, 140, 0, 26)
+giveToolBtn.Position = UDim2.new(0, 0, 0, 25)
+giveToolBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+giveToolBtn.Text = "Give Tool"
+giveToolBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+giveToolBtn.Font = Enum.Font.Gotham
+giveToolBtn.TextSize = 14
+giveToolBtn.AutoButtonColor = false
+giveToolBtn.Parent = tpSection
+Instance.new("UICorner", giveToolBtn).CornerRadius = UDim.new(0, 6)
+
+-- Tool Logic
+giveToolBtn.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    local mouse = player:GetMouse()
+    local backpack = player:FindFirstChildOfClass("Backpack")
+    if not backpack then return end
+
+    -- Avoid duplicates
+    if backpack:FindFirstChild("Click TP") or (player.Character and player.Character:FindFirstChild("Click TP")) then
+        return
+    end
+
+    local tool = Instance.new("Tool")
+    tool.Name = "Click TP"
+    tool.RequiresHandle = false
+    tool.CanBeDropped = false
+    tool.ToolTip = "Click to Teleport"
+    tool.Parent = backpack
+
+    -- Track connection so we can disconnect it
+    local clickConnection
+
+    tool.Equipped:Connect(function()
+        clickConnection = mouse.Button1Down:Connect(function()
+            local pos = mouse.Hit.Position
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0)) -- slight lift
+            end
+        end)
+    end)
+
+    tool.Unequipped:Connect(function()
+        if clickConnection then
+            clickConnection:Disconnect()
+            clickConnection = nil
+        end
+    end)
+
+    -- Feedback blink
+    giveToolBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    task.wait(0.2)
+    giveToolBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+end)
+
+
+-- Spin toggle
+makeToggle("🌀 Spin Me", function(state)
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if state then
+        _G.spinConnection = RS.Heartbeat:Connect(function()
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(15), 0)
+        end)
+    else
+        if _G.spinConnection then
+            _G.spinConnection:Disconnect()
+            _G.spinConnection = nil
+        end
+    end
+end)
+
+local headlessEnabled = false
+local headlessPart
+
+local headlessBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 100), "🎩 Headless Toggle", function()
+    local char = player.Character
+    if not char then return end
+    local head = char:FindFirstChild("Head")
+    if not head then return end
+    
+    if not headlessEnabled then
+        -- Hide the head locally by setting transparency and disabling collisions
+        head.Transparency = 1
+        head.CanCollide = false
+        
+        -- Optionally hide face decal
+        local face = head:FindFirstChild("face")
+        if face then face.Transparency = 1 end
+        
+        -- Create a transparent part to block view of the head's position (optional)
+        headlessPart = Instance.new("Part")
+        headlessPart.Size = head.Size
+        headlessPart.Transparency = 1
+        headlessPart.Anchored = true
+        headlessPart.CanCollide = false
+        headlessPart.CFrame = head.CFrame
+        headlessPart.Parent = workspace
+        
+        -- Update the headlessPart position every frame so it moves with the head's former position
+        local conn
+        conn = RS.Heartbeat:Connect(function()
+            if not headlessEnabled or not head or not headlessPart then
+                conn:Disconnect()
+                if headlessPart then headlessPart:Destroy() end
+                return
+            end
+            headlessPart.CFrame = head.CFrame
+        end)
+        
+        headlessEnabled = true
+    else
+        -- Restore head visibility and collision
+        head.Transparency = 0
+        head.CanCollide = true
+        local face = head:FindFirstChild("face")
+        if face then face.Transparency = 0 end
+        
+        -- Remove the transparent part
+        if headlessPart then
+            headlessPart:Destroy()
+            headlessPart = nil
+        end
+        
+        headlessEnabled = false
+    end
+end)
+headlessBtn.LayoutOrder = 115
+headlessBtn.Parent = contents["Misc"]
+
+
+-- Fling toggle
+makeToggle("⭕ Circle", function(state)
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if state then
+        _G.flingConnection = RS.Heartbeat:Connect(function()
+            local bv = hrp:FindFirstChild("FlingVelocity")
+            if not bv then
+                bv = Instance.new("BodyVelocity")
+                bv.Name = "FlingVelocity"
+                bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+                bv.Parent = hrp
+            end
+            bv.Velocity = Vector3.new(100 * math.sin(tick()*20), 0, 100 * math.cos(tick()*20))
+        end)
+    else
+        if _G.flingConnection then
+            _G.flingConnection:Disconnect()
+            _G.flingConnection = nil
+        end
+        local bv = hrp:FindFirstChild("FlingVelocity")
+        if bv then bv:Destroy() end
+    end
+end)
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local RS = game:GetService("RunService")
+
+local xrayEnabled = false
+local originalTransparencies = {}
+
+local xrayBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 150), "👓 Toggle Xray", function()
+    xrayEnabled = not xrayEnabled
+    
+    if xrayEnabled then
+        originalTransparencies = {}
+        for _, part in pairs(workspace:GetDescendants()) do
+            if part:IsA("BasePart") then
+                -- skip player's own character parts
+                if not player.Character or not part:IsDescendantOf(player.Character) then
+                    originalTransparencies[part] = part.Transparency
+                    part.Transparency = 0.7
+                end
+            end
+        end
+        xrayBtn.Text = "🚫 Disable Xray"
+    else
+        for part, transparency in pairs(originalTransparencies) do
+            if part and part.Parent then
+                part.Transparency = transparency
+            end
+        end
+        originalTransparencies = {}
+        xrayBtn.Text = "👓 Enable Xray"
+    end
+end)
+xrayBtn.LayoutOrder = 120
+xrayBtn.Parent = contents["Misc"]
+
+
+
+
+
+-- Slow Walk & Reset Character moved to Misc tab with emojis
+local slowWalkBtn = makeToggle("🐢 Slow Walk", function(state)
+    local hum = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+    if hum then
+        if state then
+            hum.WalkSpeed = 8
+        else
+            hum.WalkSpeed = 16
+        end
+    end
+end)
+slowWalkBtn.Parent = contents["Misc"]
+
+local resetBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 0), "♻ Reset Character", function()
+    if player.Character then
+        player.Character:BreakJoints()
+    end
+end)
+resetBtn.LayoutOrder = 105
+
+local UIS = game:GetService("UserInputService")
+local player = game.Players.LocalPlayer
+
+local ragdollEnabled = false
+local originalMotors = {}
+
+-- Function to ragdoll client-side
+local function ragdollCharacter()
+    local char = player.Character
+    if not char then return end
+
+    for _, motor in pairs(char:GetDescendants()) do
+        if motor:IsA("Motor6D") then
+            originalMotors[motor] = {Part0 = motor.Part0, Part1 = motor.Part1, C0 = motor.C0, C1 = motor.C1}
+            
+            local a0 = Instance.new("Attachment", motor.Part0)
+            local a1 = Instance.new("Attachment", motor.Part1)
+            a0.CFrame = motor.C0
+            a1.CFrame = motor.C1
+            
+            local sock = Instance.new("BallSocketConstraint")
+            sock.Attachment0 = a0
+            sock.Attachment1 = a1
+            sock.LimitsEnabled = true
+            sock.Parent = motor.Parent
+            
+            motor.Enabled = false
+        end
+    end
+    
+    local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+    if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Physics) end
+end
+
+-- Function to restore motor joints on unreaddoll
+local function restoreCharacter()
+    local char = player.Character
+    if not char then return end
+
+    for motor, data in pairs(originalMotors) do
+        if motor and motor.Parent then
+            motor.Enabled = true
+            motor.C0 = data.C0
+            motor.C1 = data.C1
+        end
+    end
+    
+    originalMotors = {}
+    
+    -- Clean up constraints and attachments
+    for _, obj in pairs(char:GetDescendants()) do
+        if obj:IsA("BallSocketConstraint") or obj:IsA("Attachment") then
+            obj:Destroy()
+        end
+    end
+    
+    local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+    if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end
+end
+
+-- Key press handling
+UIS.InputBegan:Connect(function(input, processed)
+    if processed or input.KeyCode ~= Enum.KeyCode.R or not ragdollEnabled then return end
+    
+    if next(originalMotors) then
+        restoreCharacter()
+    else
+        ragdollCharacter()
+    end
+end)
+
+-- Button in Misc tab
+local ragdollBtn = MakeButton(contents["Misc"],
+    UDim2.new(0.9, 0, 0, 38),
+    UDim2.new(0, 0, 0, 200),
+    "🧍‍♂️ Ragdoll Toggle (Press R)", function()
+        ragdollEnabled = not ragdollEnabled
+        ragdollBtn.BackgroundColor3 = ragdollEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(40, 40, 40)
+        if not ragdollEnabled and next(originalMotors) then
+            restoreCharacter()
+        end
+    end)
+
+ragdollBtn.LayoutOrder = 120
+
+
+
+-- Heal Button
+local healBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 100), "❤️ Heal 100 HP", function()
+    local char = player.Character
+    if char then
+        local hum = char:FindFirstChildWhichIsA("Humanoid")
+        if hum then
+            hum.Health = math.min(hum.MaxHealth, 100)
+        end
+    end
+end)
+healBtn.LayoutOrder = 120
+
+
+-- Fling
+local flingBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 100), "🌀 Fling Yourself", function()
+    local char = player.Character
+    if not char then return end
+
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    -- Add rotational BodyAngularVelocity
+    local bav = Instance.new("BodyAngularVelocity")
+    bav.AngularVelocity = Vector3.new(0, 50000, 0)
+    bav.MaxTorque = Vector3.new(0, math.huge, 0)
+    bav.P = 1250
+    bav.Name = "Flinger"
+    bav.Parent = hrp
+
+    -- Optional: Add velocity to push outward
+    local bv = Instance.new("BodyVelocity")
+    bv.Velocity = Vector3.new(100, 100, 100)
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bv.P = 1250
+    bv.Name = "FlingPush"
+    bv.Parent = hrp
+
+    -- Cleanup after 2 seconds
+    task.delay(2, function()
+        if bav and bav.Parent then bav:Destroy() end
+        if bv and bv.Parent then bv:Destroy() end
+    end)
+end)
+flingBtn.LayoutOrder = 120
+
+
+
+
+-- Sit Tool Button
+local sitToolBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 150), "🪑 Give Sit Tool", function()
+    local backpack = player:WaitForChild("Backpack")
+    -- Remove existing SitTool if any
+    if backpack:FindFirstChild("SitTool") then
+        backpack.SitTool:Destroy()
+    end
+
+    local tool = Instance.new("Tool")
+    tool.Name = "SitTool"
+    tool.RequiresHandle = false
+    tool.CanBeDropped = false
+
+    tool.Activated:Connect(function()
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChildWhichIsA("Humanoid")
+            if hum and not hum.Sit then
+                hum.Sit = true
+            end
+        end
+    end)
+
+    tool.Parent = backpack
+end)
+sitToolBtn.LayoutOrder = 130
+
+
+-- Explode button in Misc tab (emoji)
+local explodeBtn = Instance.new("TextButton", contents["Misc"])
+explodeBtn.Size = UDim2.new(0.9, 0, 0, 38)
+explodeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+explodeBtn.TextColor3 = Color3.new(1,1,1)
+explodeBtn.Font = Enum.Font.Gotham
+explodeBtn.TextSize = 16
+explodeBtn.Text = "💥 Explode"
+Instance.new("UICorner", explodeBtn).CornerRadius = UDim.new(0, 6)
+explodeBtn.MouseEnter:Connect(function() explodeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60) end)
+explodeBtn.MouseLeave:Connect(function() explodeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) end)
+explodeBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if not char then return end
+    local humRoot = char:FindFirstChild("HumanoidRootPart")
+    if humRoot then
+        local explosion = Instance.new("Explosion")
+        explosion.Position = humRoot.Position
+        explosion.BlastRadius = 15
+        explosion.BlastPressure = 100000
+        explosion.Parent = workspace
+    end
+end)
+
+
+local teleportGuiVisible = false
+local teleportGui
+
+local teleportBtn = MakeButton(contents["Commands"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 420), "🚀 Teleport to Player", function()
+    teleportGuiVisible = not teleportGuiVisible
+    if teleportGui then
+        teleportGui.Visible = teleportGuiVisible
+        return
+    end
+
+    -- Main GUI
+    teleportGui = Instance.new("Frame", frame)
+    teleportGui.Size = UDim2.new(0, 400, 0, 250)
+    teleportGui.Position = UDim2.new(0.5, -200, 0.5, -125)
+    teleportGui.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    teleportGui.Visible = true
+    teleportGui.Active = true
+    teleportGui.Draggable = true
+    teleportGui.Name = "TeleportGui"
+    Instance.new("UICorner", teleportGui).CornerRadius = UDim.new(0, 8)
+
+    -- Title
+    local title = Instance.new("TextLabel", teleportGui)
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.BackgroundTransparency = 1
+    title.Text = "Teleport to Player"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 18
+
+    -- Username textbox
+    local nameBox = Instance.new("TextBox", teleportGui)
+    nameBox.Size = UDim2.new(0.9, 0, 0, 32)
+    nameBox.Position = UDim2.new(0.05, 0, 0, 40)
+    nameBox.PlaceholderText = "Enter Username or DisplayName"
+    nameBox.Text = ""
+    nameBox.Font = Enum.Font.Gotham
+    nameBox.TextSize = 16
+    nameBox.TextColor3 = Color3.new(1, 1, 1)
+    nameBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 6)
+
+    -- Scroll list of player names
+    local scrollFrame = Instance.new("ScrollingFrame", teleportGui)
+    scrollFrame.Size = UDim2.new(0.9, 0, 0, 80)
+    scrollFrame.Position = UDim2.new(0.05, 0, 0, 80)
+    scrollFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Instance.new("UICorner", scrollFrame).CornerRadius = UDim.new(0, 6)
+
+    local uiList = Instance.new("UIListLayout", scrollFrame)
+    uiList.SortOrder = Enum.SortOrder.LayoutOrder
+    uiList.Padding = UDim.new(0, 4)
+
+    for _, p in ipairs(game.Players:GetPlayers()) do
+        if p ~= player then
+            local nameBtn = Instance.new("TextButton", scrollFrame)
+            nameBtn.Size = UDim2.new(1, 0, 0, 24)
+            nameBtn.Text = p.DisplayName .. " (" .. p.Name .. ")"
+            nameBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            nameBtn.TextColor3 = Color3.new(1, 1, 1)
+            nameBtn.Font = Enum.Font.Gotham
+            nameBtn.TextSize = 14
+            nameBtn.AutoButtonColor = true
+            Instance.new("UICorner", nameBtn).CornerRadius = UDim.new(0, 4)
+
+            nameBtn.MouseButton1Click:Connect(function()
+                nameBox.Text = p.Name
+            end)
+        end
+    end
+
+    -- Teleport button
+    local teleportNow = MakeButton(teleportGui, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.05, 0, 0, 180), "Teleport", function()
+        local input = nameBox.Text:lower()
+        local targetPlayer
+
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Name:lower() == input or p.DisplayName:lower() == input then
+                targetPlayer = p
+                break
+            end
+        end
+
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local myChar = player.Character
+            if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                myChar.HumanoidRootPart.CFrame = targetHRP.CFrame + Vector3.new(2, 0, 0)
+            end
+        else
+            nameBox.Text = ""
+            nameBox.PlaceholderText = "Player not found"
+        end
+    end)
+
+    -- Close button
+    local closeBtn = MakeButton(teleportGui, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.55, 0, 0, 180), "Close", function()
+        teleportGui.Visible = false
+        teleportGuiVisible = false
+    end)
+end)
+
+teleportBtn.LayoutOrder = 130
+
+
+
+-- Noclip toggle
+makeToggle("👻 Noclip", function(state)
+    local char = player.Character
+    if not char then return end
+
+    local parts = {}
+    for _, p in pairs(char:GetChildren()) do
+        if p:IsA("BasePart") then
+            table.insert(parts, p)
+        end
+    end
+
+    if state then
+        _G.noclip = RS.Stepped:Connect(function()
+            for _, p in pairs(parts) do
+                p.CanCollide = false
+            end
+        end)
+    else
+        if _G.noclip then
+            _G.noclip:Disconnect()
+            _G.noclip = nil
+        end
+        task.defer(function()
+            for _, p in pairs(parts) do
+                p.CanCollide = true
+            end
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = root.CFrame + Vector3.new(0, 1, 0)
+            end
+        end)
+    end
+end)
+
+
+local Lighting = game:GetService("Lighting")
+
+-- Store original lighting settings
+local originalBrightness = Lighting.Brightness
+local originalTimeOfDay = Lighting.TimeOfDay
+local originalFogEnd = Lighting.FogEnd
+local originalGlobalShadows = Lighting.GlobalShadows
+
+-- Create a section frame for the button
+local fullBrightSection = Instance.new("Frame")
+fullBrightSection.Size = UDim2.new(1, -20, 0, 60)
+fullBrightSection.BackgroundTransparency = 1
+fullBrightSection.Parent = contents["Fun"]
+
+-- Label
+local fullBrightLabel = Instance.new("TextLabel")
+fullBrightLabel.Text = "💡 Full Bright"
+fullBrightLabel.Size = UDim2.new(1, 0, 0, 20)
+fullBrightLabel.BackgroundTransparency = 1
+fullBrightLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+fullBrightLabel.Font = Enum.Font.GothamBold
+fullBrightLabel.TextSize = 16
+fullBrightLabel.TextXAlignment = Enum.TextXAlignment.Left
+fullBrightLabel.Parent = fullBrightSection
+
+-- Toggle button
+local fullBrightToggle = Instance.new("TextButton")
+fullBrightToggle.Size = UDim2.new(0, 140, 0, 26)
+fullBrightToggle.Position = UDim2.new(0, 0, 0, 25)
+fullBrightToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+fullBrightToggle.Text = "Toggle On/Off"
+fullBrightToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+fullBrightToggle.Font = Enum.Font.Gotham
+fullBrightToggle.TextSize = 14
+fullBrightToggle.AutoButtonColor = false
+fullBrightToggle.Parent = fullBrightSection
+Instance.new("UICorner", fullBrightToggle).CornerRadius = UDim.new(0, 6)
+
+-- Toggle functionality
+local fullBrightEnabled = false
+fullBrightToggle.MouseButton1Click:Connect(function()
+    fullBrightEnabled = not fullBrightEnabled
+
+    if fullBrightEnabled then
+        -- Turn on full bright
+        Lighting.Brightness = 5
+        Lighting.TimeOfDay = "14:00:00"
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+
+        fullBrightToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        fullBrightToggle.Text = "Full Bright On"
+    else
+        -- Restore original lighting
+        Lighting.Brightness = originalBrightness
+        Lighting.TimeOfDay = originalTimeOfDay
+        Lighting.FogEnd = originalFogEnd
+        Lighting.GlobalShadows = originalGlobalShadows
+
+        fullBrightToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        fullBrightToggle.Text = "Toggle On/Off"
+    end
+end)
+
+
+
+local Players = game:GetService("Players")
+local RS = game:GetService("RunService")
+
+local pointLightEnabled = {}
+
+local function togglePointLight(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return end
+    local char = targetPlayer.Character
+    local rootPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
+    if not rootPart then return end
+
+    if pointLightEnabled[targetPlayer.UserId] then
+        -- Remove PointLight
+        local light = rootPart:FindFirstChild("AdminPointLight")
+        if light then light:Destroy() end
+        pointLightEnabled[targetPlayer.UserId] = nil
+    else
+        -- Add PointLight
+        local pl = Instance.new("PointLight")
+        pl.Name = "AdminPointLight"
+        pl.Brightness = 2
+        pl.Range = 15
+        pl.Color = Color3.fromRGB(255, 255, 200)
+        pl.Parent = rootPart
+        pointLightEnabled[targetPlayer.UserId] = true
+    end
+end
+
+local function createInputGui()
+    local player = Players.LocalPlayer
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "PointLightInputGui"
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 120)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -60)
+    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    frame.BorderSizePixel = 0
+    frame.Parent = gui
+
+    local textbox = Instance.new("TextBox")
+    textbox.Size = UDim2.new(0.9, 0, 0, 35)
+    textbox.Position = UDim2.new(0.05, 0, 0.15, 0)
+    textbox.PlaceholderText = "Enter player username"
+    textbox.ClearTextOnFocus = false
+    textbox.Text = player.Name -- default local player name
+    textbox.Parent = frame
+    textbox.TextColor3 = Color3.new(1,1,1)
+    textbox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    textbox.BorderSizePixel = 0
+    textbox.Font = Enum.Font.SourceSans
+    textbox.TextSize = 20
+    textbox.CursorPosition = #textbox.Text + 1 -- place cursor at end
+
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0.4, 0, 0, 35)
+    toggleBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+    toggleBtn.Text = "Toggle"
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+    toggleBtn.TextColor3 = Color3.new(1,1,1)
+    toggleBtn.Font = Enum.Font.SourceSansBold
+    toggleBtn.TextSize = 22
+    toggleBtn.Parent = frame
+
+    local cancelBtn = Instance.new("TextButton")
+    cancelBtn.Size = UDim2.new(0.4, 0, 0, 35)
+    cancelBtn.Position = UDim2.new(0.55, 0, 0.65, 0)
+    cancelBtn.Text = "Cancel"
+    cancelBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    cancelBtn.TextColor3 = Color3.new(1,1,1)
+    cancelBtn.Font = Enum.Font.SourceSansBold
+    cancelBtn.TextSize = 22
+    cancelBtn.Parent = frame
+
+    local function cleanup()
+        gui:Destroy()
+    end
+
+    local function tryToggle()
+        local name = textbox.Text
+        if name == "" then return end
+        local target = Players:FindFirstChild(name)
+        if not target then
+            textbox.Text = "Player not found"
+            return
+        end
+        togglePointLight(target)
+        cleanup()
+    end
+
+    toggleBtn.MouseButton1Click:Connect(tryToggle)
+    cancelBtn.MouseButton1Click:Connect(cleanup)
+
+    textbox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            tryToggle()
+        end
+    end)
+
+    textbox:CaptureFocus()
+end
+
+local pointLightBtn = MakeButton(contents["Commands"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 100), "💡 Toggle PointLight", function()
+    createInputGui()
+end)
+
+pointLightBtn.LayoutOrder = 120
+pointLightBtn.Parent = contents["Commands"]
+
+
+
+-- Rejoin Server button in Misc tab, emoji
+local rejoinBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 50), "🔄 Rejoin Server", function()
+    TS:Teleport(game.PlaceId, player)
+end)
+rejoinBtn.LayoutOrder = 110
+
+-- Scripts tab - Infinite Yield executor + "More coming Soon" label
+local infiniteYieldBtn = MakeButton(contents["Scripts"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 0), "✨ Infinite Yield", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+end)
+infiniteYieldBtn.LayoutOrder = 100
+
+-- F3X Tool Executor Button (in Scripts tab)
+local f3xBtn = MakeButton(contents["Scripts"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 60), "🛠 F3X Tool", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/f3x.lua"))()
+end)
+f3xBtn.LayoutOrder = 120
+f3xBtn.Parent = contents["Scripts"]
+
+
+-- DEX V3 Executor Button (in Scripts tab)
+local dexBtn = MakeButton(contents["Scripts"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 110), "📦 DEX V3", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
+end)
+dexBtn.LayoutOrder = 130
+dexBtn.Parent = contents["Scripts"]
+
+
+-- ESP toggle state and highlights storage
+local espEnabled = false
+local espHighlights = {}
+
+-- Container for ESP UI section
+local espSection = Instance.new("Frame")
+espSection.Size = UDim2.new(1, -20, 0, 60)
+espSection.Position = UDim2.new(0, 10, 0, 10)
+espSection.BackgroundTransparency = 1
+espSection.Parent = contents["Fun"]
+
+-- Label for ESP
+local espLabel = Instance.new("TextLabel")
+espLabel.Size = UDim2.new(1, 0, 0, 20)
+espLabel.Position = UDim2.new(0, 0, 0, 0)
+espLabel.BackgroundTransparency = 1
+espLabel.Text = "🔍 ESP"
+espLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+espLabel.Font = Enum.Font.GothamBold
+espLabel.TextSize = 14
+espLabel.TextXAlignment = Enum.TextXAlignment.Left
+espLabel.Parent = espSection
+
+-- Toggle Button for ESP
+local espToggle = Instance.new("TextButton")
+espToggle.Size = UDim2.new(0, 140, 0, 26)
+espToggle.Position = UDim2.new(0, 0, 0, 25)
+espToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+espToggle.Text = "Toggle On/Off"
+espToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+espToggle.Font = Enum.Font.Gotham
+espToggle.TextSize = 14
+espToggle.AutoButtonColor = false
+espToggle.Parent = espSection
+Instance.new("UICorner", espToggle).CornerRadius = UDim.new(0, 6)
+
+-- Toggle Function
+espToggle.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+
+    -- Toggle color
+    espToggle.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(40, 40, 40)
+
+    -- Apply/remove highlights
+    for _, plr in pairs(game:GetService("Players"):GetPlayers()) do
+        if plr == player then continue end
+        local char = plr.Character
+        if char then
+            if espEnabled then
+                if not espHighlights[plr] then
+                    local hl = Instance.new("Highlight")
+                    hl.FillColor = Color3.fromRGB(255, 0, 0)
+                    hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    hl.FillTransparency = 0.5
+                    hl.OutlineTransparency = 0
+                    hl.Adornee = char
+                    hl.Parent = char
+                    espHighlights[plr] = hl
+                end
+            else
+                if espHighlights[plr] then
+                    espHighlights[plr]:Destroy()
+                    espHighlights[plr] = nil
+                end
+            end
+        end
+    end
+end)
+
+
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = game.Players.LocalPlayer
+local funSection = contents["Fun"]  -- your container for Fun tab buttons/UI
+
+local swimming = false
+local oldGravity = workspace.Gravity
+local swimConnection = nil
+local gravReset = nil
+
+-- Create a Frame section for swim toggle
+local swimSection = Instance.new("Frame")
+swimSection.Size = UDim2.new(1, -20, 0, 60)
+swimSection.BackgroundTransparency = 1
+swimSection.Parent = funSection
+
+local swimLabel = Instance.new("TextLabel")
+swimLabel.Text = "🏊‍♂️ Swim Toggle"
+swimLabel.Size = UDim2.new(1, 0, 0, 20)
+swimLabel.BackgroundTransparency = 1
+swimLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+swimLabel.Font = Enum.Font.GothamBold
+swimLabel.TextSize = 16
+swimLabel.Parent = swimSection
+swimLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local swimToggle = Instance.new("TextButton")
+swimToggle.Size = UDim2.new(0, 140, 0, 26)
+swimToggle.Position = UDim2.new(0, 0, 0, 25)
+swimToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+swimToggle.Text = "Toggle On/Off"
+swimToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+swimToggle.Font = Enum.Font.Gotham
+swimToggle.TextSize = 14
+swimToggle.AutoButtonColor = false
+swimToggle.Parent = swimSection
+Instance.new("UICorner", swimToggle).CornerRadius = UDim.new(0, 6)
+
+-- Function to toggle swim mode
+local function toggleSwim()
+    local character = player.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+    if not humanoid then return end
+
+    swimming = not swimming
+
+    if swimming then
+        -- Activate swim mode
+        oldGravity = workspace.Gravity
+        workspace.Gravity = 0
+
+        local function onDied()
+            workspace.Gravity = oldGravity
+            swimming = false
+            swimToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            swimToggle.Text = "Toggle On/Off"
+        end
+
+        gravReset = humanoid.Died:Connect(onDied)
+
+        local enums = Enum.HumanoidStateType:GetEnumItems()
+        table.remove(enums, table.find(enums, Enum.HumanoidStateType.None))
+        for _, v in pairs(enums) do
+            humanoid:SetStateEnabled(v, false)
+        end
+        humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+
+        swimConnection = RunService.Heartbeat:Connect(function()
+            pcall(function()
+                if humanoid.MoveDirection ~= Vector3.new() or UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    character.HumanoidRootPart.Velocity = character.HumanoidRootPart.Velocity
+                else
+                    character.HumanoidRootPart.Velocity = Vector3.new()
+                end
+            end)
+        end)
+
+        swimToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        swimToggle.Text = "Swimming On"
+
+    else
+        -- Deactivate swim mode
+        workspace.Gravity = oldGravity
+
+        if gravReset then
+            gravReset:Disconnect()
+            gravReset = nil
+        end
+
+        if swimConnection then
+            swimConnection:Disconnect()
+            swimConnection = nil
+        end
+
+        local enums = Enum.HumanoidStateType:GetEnumItems()
+        table.remove(enums, table.find(enums, Enum.HumanoidStateType.None))
+        for _, v in pairs(enums) do
+            humanoid:SetStateEnabled(v, true)
+        end
+
+        swimToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        swimToggle.Text = "Toggle On/Off"
+    end
+end
+
+swimToggle.MouseButton1Click:Connect(toggleSwim)
+
+
+
+
+local moreLabel = Instance.new("TextLabel", contents["Scripts"])
+moreLabel.Size = UDim2.new(0.9, 0, 0, 30)
+moreLabel.Position = UDim2.new(0.05, 0, 0, 50)
+moreLabel.BackgroundTransparency = 1
+moreLabel.Text = "More coming Soon..."
+moreLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+moreLabel.Font = Enum.Font.GothamItalic
+moreLabel.TextSize = 16
+moreLabel.TextXAlignment = Enum.TextXAlignment.Center
+moreLabel.LayoutOrder = 110
+
+print("Admin Panel loaded successfully")
