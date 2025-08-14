@@ -53,7 +53,7 @@ creditLabel.TextXAlignment = Enum.TextXAlignment.Left
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Text = "✨ Asifis's Admin Panel ✨"
 titleLabel.Size = UDim2.new(1, 0, 0, 50)
-titleLabel.Position = UDim2.new(0, 0, 0, 5)  -- near the top
+titleLabel.Position = UDim2.new(0, 0, 0, -3)  -- near the top
 titleLabel.BackgroundTransparency = 1
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.Font = Enum.Font.GothamBold
@@ -66,7 +66,7 @@ local player = game.Players.LocalPlayer
 local usernameLabel = Instance.new("TextLabel")
 usernameLabel.Text = "User: " .. player.Name
 usernameLabel.Size = UDim2.new(1, 0, 0, 20)
-usernameLabel.Position = UDim2.new(0, 0, 0, 40)
+usernameLabel.Position = UDim2.new(0, 0, 0, 35)
 usernameLabel.BackgroundTransparency = 1
 usernameLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
 usernameLabel.Font = Enum.Font.Gotham
@@ -262,7 +262,60 @@ end)
 
 speedBlock.Parent = contents["Commands"]
 
--- Jump Power GUI
+-- Speed GUI
+local speedBlock = Instance.new("Frame", contents["Commands"])
+speedBlock.Size = UDim2.new(0.9, 0, 0, 120)
+speedBlock.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+speedBlock.LayoutOrder = 100
+Instance.new("UICorner", speedBlock).CornerRadius = UDim.new(0, 10)
+speedBlock.Visible = false
+
+local speedLabel = Instance.new("TextLabel", speedBlock)
+speedLabel.Size = UDim2.new(0.9, 0, 0, 24)
+speedLabel.Position = UDim2.new(0.05, 0, 0, 8)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "Set Walk Speed (8 to 250):"
+speedLabel.TextColor3 = Color3.new(1,1,1)
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.TextSize = 16
+speedLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local speedBox = Instance.new("TextBox", speedBlock)
+speedBox.Size = UDim2.new(0.9, 0, 0, 30)
+speedBox.Position = UDim2.new(0.05, 0, 0, 40)
+speedBox.PlaceholderText = "Default: 16"
+speedBox.ClearTextOnFocus = true
+speedBox.Text = ""
+speedBox.Font = Enum.Font.Gotham
+speedBox.TextSize = 18
+speedBox.TextColor3 = Color3.new(1,1,1)
+speedBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Instance.new("UICorner", speedBox).CornerRadius = UDim.new(0, 6)
+
+local setSpeedBtn = MakeButton(speedBlock, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.05, 0, 0, 80), "Set", function()
+    local val = tonumber(speedBox.Text)
+    if val and val >= 8 and val <= 250 then
+        local hum = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
+        if hum then
+            hum.WalkSpeed = val
+        end
+    else
+        speedBox.Text = ""
+        speedBox.PlaceholderText = "Invalid input! Use 8-250"
+    end
+end)
+
+local closeSpeedBtn = MakeButton(speedBlock, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.55, 0, 0, 80), "Close", function()
+    speedBlock.Visible = false
+    toggles["Speed"] = false
+    if toggleSpeedBtn then
+        toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    end
+end)
+
+speedBlock.Parent = contents["Commands"]
+
+-- Jump GUI
 local jumpBlock = Instance.new("Frame", contents["Commands"])
 jumpBlock.Size = UDim2.new(0.8, 0, 0, 120)
 jumpBlock.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -308,19 +361,25 @@ end)
 local closeJumpBtn = MakeButton(jumpBlock, UDim2.new(0.4, 0, 0, 30), UDim2.new(0.55, 0, 0, 80), "Close", function()
     jumpBlock.Visible = false
     toggles["Jump Power"] = false
-    toggleJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    if toggleJumpBtn then
+        toggleJumpBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    end
 end)
 
 jumpBlock.Parent = contents["Commands"]
 
--- Toggle buttons for Speed and Jump Power inside Commands tab
-local toggleSpeedBtn = makeToggle("⚡ Speed", function(state)
+-- Toggles for Speed and Jump
+local toggleSpeedBtn
+local toggleJumpBtn
+
+toggleSpeedBtn = makeToggle("⚡ Speed", function(state)
     speedBlock.Visible = state
 end)
 
-local toggleJumpBtn = makeToggle("⬆ Jump Power", function(state)
+toggleJumpBtn = makeToggle("⬆ Jump Power", function(state)
     jumpBlock.Visible = state
 end)
+
 
 
 makeToggle("👻 Invisible", function(state)
@@ -582,6 +641,8 @@ jumpToggle.MouseButton1Click:Connect(function()
 end)
 
 
+
+
 local Players = game:GetService("Players")
 local funSection = contents["Fun"] -- Your Fun tab container
 
@@ -734,6 +795,9 @@ makeToggle("🕷 Spider", function(state)
         end
     end
 end)
+
+
+
 
 -- Click TP Section
 local tpSection = Instance.new("Frame")
@@ -1109,7 +1173,223 @@ local flingBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.ne
 end)
 flingBtn.LayoutOrder = 120
 
+-- Fun Tab: Click Neon Part (Fun-style UI)
+local clickNeonSection = Instance.new("Frame")
+clickNeonSection.Size = UDim2.new(1, -20, 0, 60)
+clickNeonSection.BackgroundTransparency = 1
+clickNeonSection.Parent = contents["Fun"]
 
+-- Label
+local clickNeonLabel = Instance.new("TextLabel")
+clickNeonLabel.Text = "💠 Click Neon Part"
+clickNeonLabel.Size = UDim2.new(1, 0, 0, 20)
+clickNeonLabel.BackgroundTransparency = 1
+clickNeonLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+clickNeonLabel.Font = Enum.Font.GothamBold
+clickNeonLabel.TextSize = 16
+clickNeonLabel.TextXAlignment = Enum.TextXAlignment.Left
+clickNeonLabel.Parent = clickNeonSection
+
+-- Toggle button
+local clickNeonToggle = Instance.new("TextButton")
+clickNeonToggle.Size = UDim2.new(0, 140, 0, 26)
+clickNeonToggle.Position = UDim2.new(0, 0, 0, 25)
+clickNeonToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+clickNeonToggle.Text = "Toggle On/Off"
+clickNeonToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+clickNeonToggle.Font = Enum.Font.Gotham
+clickNeonToggle.TextSize = 14
+clickNeonToggle.AutoButtonColor = false
+clickNeonToggle.Parent = clickNeonSection
+Instance.new("UICorner", clickNeonToggle).CornerRadius = UDim.new(0, 6)
+
+-- Toggle functionality
+local clickNeonEnabled = false
+local mouse = player:GetMouse()
+local clickConnection
+
+clickNeonToggle.MouseButton1Click:Connect(function()
+    clickNeonEnabled = not clickNeonEnabled
+
+    if clickNeonEnabled then
+        clickNeonToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        clickNeonToggle.Text = "Click Neon On"
+
+        clickConnection = mouse.Button1Down:Connect(function()
+            local targetPos = mouse.Hit.Position
+
+            local part = Instance.new("Part")
+            part.Size = Vector3.new(10, 10, 10)
+            part.Position = targetPos + Vector3.new(0, 5, 0)
+            part.Anchored = false
+            part.CanCollide = true
+            part.BrickColor = BrickColor.new("Bright violet")
+            part.Material = Enum.Material.Neon
+            part.Parent = workspace
+
+            -- Destroy after 5 seconds
+            task.delay(5, function()
+                if part and part.Parent then
+                    part:Destroy()
+                end
+            end)
+        end)
+    else
+        clickNeonToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        clickNeonToggle.Text = "Toggle On/Off"
+
+        if clickConnection then
+            clickConnection:Disconnect()
+            clickConnection = nil
+        end
+    end
+end)
+
+
+-- SETTINGS BUTTON (Top-left like Minimize)
+local settingsBtn = Instance.new("TextButton")
+settingsBtn.Size = UDim2.new(0, 30, 0, 30)
+settingsBtn.Position = UDim2.new(0, 5, 0, 5)
+settingsBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+settingsBtn.Text = "⚙"
+settingsBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+settingsBtn.Font = Enum.Font.GothamBold
+settingsBtn.TextSize = 20
+settingsBtn.AutoButtonColor = false
+settingsBtn.Parent = frame
+Instance.new("UICorner", settingsBtn).CornerRadius = UDim.new(0, 5)
+
+-- SETTINGS GUI
+local settingsGui = Instance.new("ScreenGui", playerGui)
+settingsGui.Name = "SettingsGui"
+settingsGui.ResetOnSpawn = false
+settingsGui.Enabled = false
+
+local settingsFrame = Instance.new("Frame")
+settingsFrame.Size = UDim2.new(0, 500, 0, 500) -- bigger panel
+settingsFrame.Position = UDim2.new(0.5, -250, 0.5, -250)
+settingsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- solid dark
+settingsFrame.Active = true
+settingsFrame.Draggable = true
+settingsFrame.Parent = settingsGui
+Instance.new("UICorner", settingsFrame).CornerRadius = UDim.new(0, 12)
+
+-- Top Bar
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 50) -- thicker top
+topBar.Position = UDim2.new(0, 0, 0, 0)
+topBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+topBar.BackgroundTransparency = 0.2
+topBar.BorderSizePixel = 1
+topBar.BorderColor3 = Color3.fromRGB(15, 15, 15)
+topBar.Parent = settingsFrame
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 12)
+
+-- Close button
+local closeSettings = Instance.new("TextButton")
+closeSettings.Size = UDim2.new(0, 35, 0, 35)
+closeSettings.Position = UDim2.new(1, -40, 0, 7) -- proper distance
+closeSettings.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+closeSettings.Text = "X"
+closeSettings.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeSettings.Font = Enum.Font.GothamBold
+closeSettings.TextSize = 20
+closeSettings.AutoButtonColor = false
+closeSettings.Parent = topBar
+Instance.new("UICorner", closeSettings).CornerRadius = UDim.new(0, 6)
+
+closeSettings.MouseButton1Click:Connect(function()
+    settingsGui.Enabled = false
+end)
+
+
+-- FUNCTION TO CREATE SETTINGS TOGGLE
+local function createSettingToggle(name, parent, action, order)
+    local section = Instance.new("Frame")
+    section.Size = UDim2.new(1, -40, 0, 60)
+    section.Position = UDim2.new(0, 20, 0, 60 + order*70) -- spacing from top bar and between buttons
+    section.BackgroundTransparency = 1
+    section.Parent = parent
+
+    local label = Instance.new("TextLabel")
+    label.Text = name
+    label.Size = UDim2.new(0.65, 0, 0, 56)
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = section
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0.3, 0, 0, 30)
+    toggle.Position = UDim2.new(0.68, 0, 0, 15)
+    toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    toggle.Text = "Toggle On/Off"
+    toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggle.Font = Enum.Font.Gotham
+    toggle.TextSize = 14
+    toggle.AutoButtonColor = false
+    toggle.Parent = section
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 6)
+
+    local enabled = false
+    toggle.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            toggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            toggle.Text = name.." On"
+        else
+            toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            toggle.Text = "Toggle On/Off"
+        end
+        action(enabled)
+    end)
+end
+
+
+-- PERFORMANCE MODE TOGGLE
+createSettingToggle("⚡ Performance Mode", settingsFrame, function(state)
+    Lighting.GlobalShadows = not state
+    workspace.StreamingEnabled = state
+
+    -- Lower graphics for the player
+    if state then
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level1 -- minimal graphics
+    else
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+    end
+end, 0)
+
+-- NIGHT/DAY TOGGLE
+createSettingToggle("🌙 Night/Day", settingsFrame, function(state)
+    Lighting.TimeOfDay = state and "00:00:00" or "14:00:00"
+end, 1)
+
+-- PING DISPLAY
+local pingLabel = Instance.new("TextLabel")
+pingLabel.Size = UDim2.new(1, 0, 0, 24)
+pingLabel.Position = UDim2.new(0, 0, 1, -40)
+pingLabel.BackgroundTransparency = 1
+pingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+pingLabel.Font = Enum.Font.GothamBold
+pingLabel.TextSize = 16
+pingLabel.TextXAlignment = Enum.TextXAlignment.Center
+pingLabel.Text = "Ping: 0ms"
+pingLabel.Parent = settingsFrame
+
+spawn(function()
+    while wait(1) do
+        local ping = math.floor(player:GetNetworkPing() * 1000)
+        pingLabel.Text = "Ping: "..ping.."ms"
+    end
+end)
+
+-- OPEN SETTINGS GUI
+settingsBtn.MouseButton1Click:Connect(function()
+    settingsGui.Enabled = true
+end)
 
 
 -- Sit Tool Button
@@ -1271,6 +1551,7 @@ local teleportBtn = MakeButton(contents["Commands"], UDim2.new(0.9, 0, 0, 38), U
 end)
 
 teleportBtn.LayoutOrder = 130
+
 
 
 
