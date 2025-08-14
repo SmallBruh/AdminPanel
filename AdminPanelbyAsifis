@@ -4,7 +4,7 @@ local RS = game:GetService("RunService")
 local TS = game:GetService("TeleportService")
 local TweenService = game:GetService("TweenService")
 
--- Button
+-- Buttons
 local function MakeButton(parent, size, pos, text, callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = size
@@ -22,7 +22,7 @@ local function MakeButton(parent, size, pos, text, callback)
     return btn
 end
 
--- Build GUI
+-- Building the sick ass gui
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "AdminPanel"
 gui.ResetOnSpawn = false
@@ -486,7 +486,7 @@ local RunService = game:GetService("RunService")
 local player = game.Players.LocalPlayer
 local funSection = contents["Fun"]  -- Your Fun tab container
 
--- Create a frame for FPS counter
+-- FPS
 local fpsFrame = Instance.new("Frame")
 fpsFrame.Size = UDim2.new(0, 140, 0, 26)
 fpsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -520,7 +520,7 @@ end)
 
 
 
--- Fly toggle - restored old working code, with emoji
+-- Fly toggle
 makeToggle("🕊 Fly", function(state)
     if state then
         local char = player.Character
@@ -581,7 +581,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Infinite Jump Variables
+
 local infJumpEnabled = false
 local infJumpConn
 
@@ -829,7 +829,7 @@ giveToolBtn.AutoButtonColor = false
 giveToolBtn.Parent = tpSection
 Instance.new("UICorner", giveToolBtn).CornerRadius = UDim.new(0, 6)
 
--- Tool Logic
+-- Tool Logic and shii
 giveToolBtn.MouseButton1Click:Connect(function()
     local player = game.Players.LocalPlayer
     local mouse = player:GetMouse()
@@ -1021,7 +1021,7 @@ xrayBtn.Parent = contents["Misc"]
 
 
 
--- Slow Walk & Reset Character moved to Misc tab with emojis
+-- blah blah
 local slowWalkBtn = makeToggle("🐢 Slow Walk", function(state)
     local hum = player.Character and player.Character:FindFirstChildWhichIsA("Humanoid")
     if hum then
@@ -1128,7 +1128,7 @@ ragdollBtn.LayoutOrder = 120
 
 
 
--- Heal Button
+-- Heal Button to 100 health or what ever
 local healBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 100), "❤️ Heal 100 HP", function()
     local char = player.Character
     if char then
@@ -1141,7 +1141,7 @@ end)
 healBtn.LayoutOrder = 120
 
 
--- Fling
+-- Fling ME
 local flingBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 100), "🌀 Fling Yourself", function()
     local char = player.Character
     if not char then return end
@@ -1173,7 +1173,7 @@ local flingBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.ne
 end)
 flingBtn.LayoutOrder = 120
 
--- Fun Tab: Click Neon Part (Fun-style UI)
+-- Fun Tab section
 local clickNeonSection = Instance.new("Frame")
 clickNeonSection.Size = UDim2.new(1, -20, 0, 60)
 clickNeonSection.BackgroundTransparency = 1
@@ -1246,7 +1246,7 @@ clickNeonToggle.MouseButton1Click:Connect(function()
 end)
 
 
--- SETTINGS BUTTON (Top-left like Minimize)
+-- SETTINGS BUTTON
 local settingsBtn = Instance.new("TextButton")
 settingsBtn.Size = UDim2.new(0, 30, 0, 30)
 settingsBtn.Position = UDim2.new(0, 5, 0, 5)
@@ -1307,7 +1307,7 @@ end)
 local function createSettingToggle(name, parent, action, order)
     local section = Instance.new("Frame")
     section.Size = UDim2.new(1, -40, 0, 60)
-    section.Position = UDim2.new(0, 20, 0, 60 + order*70) -- spacing from top bar and between buttons
+    section.Position = UDim2.new(0, 20, 0, 60 + order*70)
     section.BackgroundTransparency = 1
     section.Parent = parent
 
@@ -1349,7 +1349,7 @@ local function createSettingToggle(name, parent, action, order)
 end
 
 
--- PERFORMANCE MODE TOGGLE
+-- PERFORMANCE MODE TOGGLE (if shit pc)
 createSettingToggle("⚡ Performance Mode", settingsFrame, function(state)
     Lighting.GlobalShadows = not state
     workspace.StreamingEnabled = state
@@ -1367,7 +1367,7 @@ createSettingToggle("🌙 Night/Day", settingsFrame, function(state)
     Lighting.TimeOfDay = state and "00:00:00" or "14:00:00"
 end, 1)
 
--- PING DISPLAY
+-- PING TEXT
 local pingLabel = Instance.new("TextLabel")
 pingLabel.Size = UDim2.new(1, 0, 0, 24)
 pingLabel.Position = UDim2.new(0, 0, 1, -40)
@@ -1392,7 +1392,7 @@ settingsBtn.MouseButton1Click:Connect(function()
 end)
 
 
--- Sit Tool Button
+-- Sit
 local sitToolBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 150), "🪑 Give Sit Tool", function()
     local backpack = player:WaitForChild("Backpack")
     -- Remove existing SitTool if any
@@ -1420,7 +1420,7 @@ end)
 sitToolBtn.LayoutOrder = 130
 
 
--- Explode button in Misc tab (emoji)
+-- Explode button
 local explodeBtn = Instance.new("TextButton", contents["Misc"])
 explodeBtn.Size = UDim2.new(0.9, 0, 0, 38)
 explodeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -1552,7 +1552,115 @@ end)
 
 teleportBtn.LayoutOrder = 130
 
+-- === Aimbot (Misc tab) ===
+local Players = game:GetService("Players")
+local RS      = game:GetService("RunService")
+local UIS     = game:GetService("UserInputService")
+local camera  = workspace.CurrentCamera
+local mouse   = Players.LocalPlayer:GetMouse()
+local player  = Players.LocalPlayer
 
+local aimbotEnabled = false
+local aimbotConn    = nil
+local aimFOV        = 200      -- pixels
+local aimPartName   = "Head"   -- or "HumanoidRootPart"
+
+-- UI: themed toggle button
+local aimbotBtn = Instance.new("TextButton")
+aimbotBtn.Size = UDim2.new(0.9, 0, 0, 38)
+aimbotBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+aimbotBtn.TextColor3 = Color3.new(1, 1, 1)
+aimbotBtn.Font = Enum.Font.Gotham
+aimbotBtn.TextSize = 16
+aimbotBtn.Text = "🎯 Aimbot PRESS P TO ENABLE"
+aimbotBtn.AutoButtonColor = false
+Instance.new("UICorner", aimbotBtn).CornerRadius = UDim.new(0, 6)
+aimbotBtn.Parent = contents["Misc"]
+
+local function setBtnState(on)
+    aimbotBtn.BackgroundColor3 = on and Color3.fromRGB(0,170,0) or Color3.fromRGB(40,40,40)
+end
+
+-- Check if target is visible!!!
+local function canSee(part)
+    local origin = camera.CFrame.Position
+    local direction = (part.Position - origin).Unit * (part.Position - origin).Magnitude
+    local ray = Ray.new(origin, direction)
+    local hit = workspace:FindPartOnRayWithIgnoreList(ray, {player.Character}, false, true)
+    return hit == part
+end
+
+-- Find the nearest visible player
+local function getClosestVisible()
+    local closest = nil
+    local bestDist = aimFOV
+    local center = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            local part = plr.Character:FindFirstChild(aimPartName)
+            if part and canSee(part) then
+                local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
+                if onScreen then
+                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+                    if dist < bestDist then
+                        bestDist = dist
+                        closest = part
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+-- Aimbot loops and shoots hoops
+local function startAimbot()
+    if aimbotConn then return end
+    aimbotConn = RS.RenderStepped:Connect(function()
+        if aimbotEnabled then
+            local targetPart = getClosestVisible()
+            if targetPart then
+                camera.CFrame = CFrame.new(camera.CFrame.Position, targetPart.Position)
+            end
+        end
+    end)
+end
+
+local function stopAimbot()
+    if aimbotConn then aimbotConn:Disconnect() aimbotConn = nil end
+end
+
+local function disableFully()
+    aimbotEnabled = false
+    stopAimbot()
+    setBtnState(false)
+end
+
+-- Disable on the DEATH!!
+local function hookHumanoid(char)
+    local hum = char and char:FindFirstChildWhichIsA("Humanoid")
+    if hum then hum.Died:Connect(disableFully) end
+end
+if player.Character then hookHumanoid(player.Character) end
+player.CharacterAdded:Connect(hookHumanoid)
+
+-- Toggle via panel button
+aimbotBtn.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    setBtnState(aimbotEnabled)
+    if aimbotEnabled then startAimbot() else stopAimbot() end
+end)
+
+-- Keybind P to toggle aimbot
+UIS.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.P then
+        aimbotEnabled = not aimbotEnabled
+        setBtnState(aimbotEnabled)
+        if aimbotEnabled then startAimbot() else stopAimbot() end
+    end
+end)
 
 
 -- Noclip toggle
@@ -1711,7 +1819,7 @@ local function createInputGui()
     textbox.BorderSizePixel = 0
     textbox.Font = Enum.Font.SourceSans
     textbox.TextSize = 20
-    textbox.CursorPosition = #textbox.Text + 1 -- place cursor at end
+    textbox.CursorPosition = #textbox.Text + 1
 
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Size = UDim2.new(0.4, 0, 0, 35)
@@ -1770,13 +1878,13 @@ pointLightBtn.Parent = contents["Commands"]
 
 
 
--- Rejoin Server button in Misc tab, emoji
+-- Rejoin Server button
 local rejoinBtn = MakeButton(contents["Misc"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 50), "🔄 Rejoin Server", function()
     TS:Teleport(game.PlaceId, player)
 end)
 rejoinBtn.LayoutOrder = 110
 
--- Scripts tab - Infinite Yield executor + "More coming Soon" label
+-- Scripts tab - Infinite Yield and the More coming Soon label
 local infiniteYieldBtn = MakeButton(contents["Scripts"], UDim2.new(0.9, 0, 0, 38), UDim2.new(0, 0, 0, 0), "✨ Infinite Yield", function()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
 end)
@@ -1798,18 +1906,18 @@ dexBtn.LayoutOrder = 130
 dexBtn.Parent = contents["Scripts"]
 
 
--- ESP toggle state and highlights storage
+-- esp toggle state and highlights storage
 local espEnabled = false
 local espHighlights = {}
 
--- Container for ESP UI section
+-- Container for esp UI section
 local espSection = Instance.new("Frame")
 espSection.Size = UDim2.new(1, -20, 0, 60)
 espSection.Position = UDim2.new(0, 10, 0, 10)
 espSection.BackgroundTransparency = 1
 espSection.Parent = contents["Fun"]
 
--- Label for ESP
+-- Label for esp
 local espLabel = Instance.new("TextLabel")
 espLabel.Size = UDim2.new(1, 0, 0, 20)
 espLabel.Position = UDim2.new(0, 0, 0, 0)
@@ -1821,7 +1929,7 @@ espLabel.TextSize = 14
 espLabel.TextXAlignment = Enum.TextXAlignment.Left
 espLabel.Parent = espSection
 
--- Toggle Button for ESP
+-- Toggle Button for esp
 local espToggle = Instance.new("TextButton")
 espToggle.Size = UDim2.new(0, 140, 0, 26)
 espToggle.Position = UDim2.new(0, 0, 0, 25)
@@ -1878,7 +1986,7 @@ local oldGravity = workspace.Gravity
 local swimConnection = nil
 local gravReset = nil
 
--- Create a Frame section for swim toggle
+-- Create a Frame section for swim in air shit
 local swimSection = Instance.new("Frame")
 swimSection.Size = UDim2.new(1, -20, 0, 60)
 swimSection.BackgroundTransparency = 1
@@ -1906,7 +2014,7 @@ swimToggle.AutoButtonColor = false
 swimToggle.Parent = swimSection
 Instance.new("UICorner", swimToggle).CornerRadius = UDim.new(0, 6)
 
--- Function to toggle swim mode
+-- Function to toggle swim :)
 local function toggleSwim()
     local character = player.Character
     if not character then return end
@@ -1990,4 +2098,4 @@ moreLabel.TextSize = 16
 moreLabel.TextXAlignment = Enum.TextXAlignment.Center
 moreLabel.LayoutOrder = 110
 
-print("Admin Panel loaded successfully")
+print("Asifis is the GOAT!!!")
