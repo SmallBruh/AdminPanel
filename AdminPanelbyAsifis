@@ -445,48 +445,91 @@ toggleJumpBtn = makeToggle('⬆ Jump Power', function(state)
     jumpBlock.Visible = state
 end)
 
--- Invisible / Visible Button (Commands Tab)
-local function createInvisibleButton()
-    local btn = Instance.new('TextButton')
-    btn.Size = UDim2.new(0.9, 0, 0, 38)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 16
-    btn.Text = '👻 Toggle Invisible'
-    btn.AutoButtonColor = false
-    Instance.new('UICorner', btn).CornerRadius = UDim.new(0, 6)
-    btn.Parent = contents['Commands']
-
-    local isInvisible = false
-    local player = game.Players.LocalPlayer
-    local char = player.Character or player.CharacterAdded:Wait()
-    local parts = {}
-
-    -- collect all BaseParts for transparency
-    for _, v in pairs(char:GetDescendants()) do
-        if v:IsA('BasePart') then
-            table.insert(parts, v)
-        end
+makeToggle('👻 Invisible', function(state)
+    local char = player.Character
+    if not char then
+        return
     end
 
-    btn.MouseButton1Click:Connect(function()
-        isInvisible = not isInvisible
-        if isInvisible then
-            btn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-            for _, part in pairs(parts) do
-                part.LocalTransparencyModifier = 0.9 -- mostly invisible
-            end
-        else
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            for _, part in pairs(parts) do
-                part.LocalTransparencyModifier = 0 -- fully visible
+    local humanoid = char:FindFirstChildWhichIsA('Humanoid')
+    local head = char:FindFirstChild('Head')
+    local hrp = char:FindFirstChild('HumanoidRootPart')
+    if not humanoid or not head or not hrp then
+        return
+    end
+
+    if state then
+        -- Store and hide hats
+        _G._invisibleHats = {}
+        for _, hat in ipairs(char:GetChildren()) do
+            if hat:IsA('Accessory') then
+                table.insert(_G._invisibleHats, hat)
+                hat.Parent = nil
             end
         end
-    end)
-end
 
-createInvisibleButton()
+        -- Hide all decals (server-sided)
+        for _, decal in ipairs(head:GetChildren()) do
+            if decal:IsA('Decal') then
+                decal.Transparency = 1
+            end
+        end
+
+        -- Make all character parts invisible (server-sided)
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA('BasePart') then
+                part.Transparency = 1
+                -- KEEP CanCollide (no noclip)
+            end
+        end
+
+        -- Apply local-only partial visibility to yourself
+        task.defer(function()
+            for _, part in ipairs(char:GetDescendants()) do
+                if part:IsA('BasePart') then
+                    part.LocalTransparencyModifier = 0.6
+                end
+            end
+        end)
+
+        -- Hide name and health bar (server-sided)
+        humanoid.NameDisplayDistance = 0
+        humanoid.HealthDisplayDistance = 0
+        humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+    else
+        -- Restore hats
+        for _, hat in ipairs(_G._invisibleHats or {}) do
+            if hat then
+                hat.Parent = char
+            end
+        end
+        _G._invisibleHats = nil
+
+        -- Restore decals
+        for _, decal in ipairs(head:GetChildren()) do
+            if decal:IsA('Decal') then
+                decal.Transparency = 0
+            end
+        end
+
+        -- Restore parts' visibility (except HumanoidRootPart)
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA('BasePart') then
+                if part.Name ~= 'HumanoidRootPart' then
+                    part.Transparency = 0
+                end
+                part.LocalTransparencyModifier = 0
+            end
+        end
+
+        -- Restore name/health UI
+        humanoid.NameDisplayDistance = 100
+        humanoid.HealthDisplayDistance = 100
+        humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+
+        humanoid:ChangeState(Enum.HumanoidStateType.Running)
+    end
+end)
 
 local RunService = game:GetService('RunService')
 local player = game.Players.LocalPlayer
@@ -660,16 +703,71 @@ jumpToggle.MouseButton1Click:Connect(function()
 end)
 
 local Players = game:GetService('Players')
-local funSection = contents['Fun'] -- Your Fun tab container
 
-local clothesRemoved = false
+-- Initialize the table that tracks removed items by each player
 local removedItemsByPlayer = {}
+
+-- Function to remove clothes from a character
+local function removeClothesFromChar(char)
+    if not char then
+        return {}
+    end
+
+    local removedItems = {}
+
+    -- Iterate through all parts of the character to find clothes
+    for _, item in ipairs(char:GetChildren()) do
+        -- Check for clothing items (Shirt, Pants, ShirtGraphic)
+        if
+            item:IsA('Shirt')
+            or item:IsA('Pants')
+            or item:IsA('ShirtGraphic')
+        then
+            table.insert(removedItems, item) -- Store the removed item
+            item.Parent = nil -- Remove item from character
+        end
+    end
+
+    return removedItems
+end
+
+-- Function to restore clothes to a character
+local function restoreClothesToChar(char, items)
+    if not char or not items then
+        return
+    end
+
+    -- Restore each item to the character
+    for _, item in ipairs(items) do
+        item.Parent = char -- Re-parent clothing item back to the character
+    end
+end
+
+-- Function to remove clothes for all players
+local function removeAllPlayersClothes()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr.Character then
+            -- Remove clothes and store the removed items in the table
+            removedItemsByPlayer[plr] = removeClothesFromChar(plr.Character)
+        end
+    end
+end
+
+-- Function to restore clothes for all players
+local function restoreAllPlayersClothes()
+    for plr, items in pairs(removedItemsByPlayer) do
+        if plr.Character then
+            restoreClothesToChar(plr.Character, items)
+        end
+        removedItemsByPlayer[plr] = nil -- Clear the stored items for the player
+    end
+end
 
 -- Create frame section for clothes toggle
 local clothesSection = Instance.new('Frame')
 clothesSection.Size = UDim2.new(1, -20, 0, 60)
 clothesSection.BackgroundTransparency = 1
-clothesSection.Parent = funSection
+clothesSection.Parent = funSection -- assuming `funSection` is where the Fun tab is defined
 
 local clothesLabel = Instance.new('TextLabel')
 clothesLabel.Text = '👕 Remove All Clothes'
@@ -693,61 +791,20 @@ clothesToggle.AutoButtonColor = false
 clothesToggle.Parent = clothesSection
 Instance.new('UICorner', clothesToggle).CornerRadius = UDim.new(0, 6)
 
-local function removeClothesFromChar(char)
-    if not char then
-        return {}
-    end
-    local removed = {}
-    for _, item in ipairs(char:GetChildren()) do
-        if
-            item:IsA('Shirt')
-            or item:IsA('Pants')
-            or item:IsA('ShirtGraphic')
-        then
-            table.insert(removed, item)
-            item.Parent = nil
-        end
-    end
-    return removed
-end
+local clothesRemoved = false -- Track whether clothes are removed or restored
 
-local function restoreClothesToChar(char, items)
-    if not char or not items then
-        return
-    end
-    for _, item in ipairs(items) do
-        item.Parent = char
-    end
-end
-
-local function removeAllPlayersClothes()
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr.Character then
-            removedItemsByPlayer[plr] = removeClothesFromChar(plr.Character)
-        end
-    end
-end
-
-local function restoreAllPlayersClothes()
-    for plr, items in pairs(removedItemsByPlayer) do
-        if plr.Character then
-            restoreClothesToChar(plr.Character, items)
-        end
-        removedItemsByPlayer[plr] = nil
-    end
-end
-
--- Toggle function
+-- Toggle function for clothes
 clothesToggle.MouseButton1Click:Connect(function()
-    clothesRemoved = not clothesRemoved
+    clothesRemoved = not clothesRemoved -- Toggle the state
+
     if clothesRemoved then
         clothesToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
         clothesToggle.Text = 'Clothes Removed'
-        removeAllPlayersClothes()
+        removeAllPlayersClothes() -- Remove clothes for all players
     else
         clothesToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         clothesToggle.Text = 'Toggle On/Off'
-        restoreAllPlayersClothes()
+        restoreAllPlayersClothes() -- Restore clothes for all players
     end
 end)
 
@@ -755,17 +812,18 @@ end)
 Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function(char)
         if clothesRemoved then
-            task.wait(1) -- wait for character to load clothes
-            removedItemsByPlayer[plr] = removeClothesFromChar(char)
+            task.wait(1) -- Wait for the character to load fully
+            removedItemsByPlayer[plr] = removeClothesFromChar(char) -- Remove clothes on spawn
         end
     end)
 end)
 
+-- Ensure the system works for all existing players when the script first runs
 for _, plr in pairs(Players:GetPlayers()) do
     plr.CharacterAdded:Connect(function(char)
         if clothesRemoved then
             task.wait(1)
-            removedItemsByPlayer[plr] = removeClothesFromChar(char)
+            removedItemsByPlayer[plr] = removeClothesFromChar(char) -- Remove clothes if the toggle is on
         end
     end)
 end
@@ -2027,147 +2085,6 @@ local teleportBtn = MakeButton(
 
 teleportBtn.LayoutOrder = 130
 
--- === Aimbot (Misc tab) ===
-local Players = game:GetService('Players')
-local RS = game:GetService('RunService')
-local UIS = game:GetService('UserInputService')
-local camera = workspace.CurrentCamera
-local mouse = Players.LocalPlayer:GetMouse()
-local player = Players.LocalPlayer
-
-local aimbotEnabled = false
-local aimbotConn = nil
-local aimFOV = 200 -- pixels
-local aimPartName = 'Head' -- or "HumanoidRootPart"
-
--- UI: themed toggle button
-local aimbotBtn = Instance.new('TextButton')
-aimbotBtn.Size = UDim2.new(0.9, 0, 0, 38)
-aimbotBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-aimbotBtn.TextColor3 = Color3.new(1, 1, 1)
-aimbotBtn.Font = Enum.Font.Gotham
-aimbotBtn.TextSize = 16
-aimbotBtn.Text = '🎯 Aimbot PRESS P TO TOGGLE'
-aimbotBtn.AutoButtonColor = false
-Instance.new('UICorner', aimbotBtn).CornerRadius = UDim.new(0, 6)
-aimbotBtn.Parent = contents['Misc']
-
-local function setBtnState(on)
-    aimbotBtn.BackgroundColor3 = on and Color3.fromRGB(0, 170, 0)
-        or Color3.fromRGB(40, 40, 40)
-end
-
--- Check if target is visible (line of sight)
-local function canSee(part)
-    local origin = camera.CFrame.Position
-    local direction = (part.Position - origin).Unit
-        * (part.Position - origin).Magnitude
-    local ray = Ray.new(origin, direction)
-    local hit = workspace:FindPartOnRayWithIgnoreList(
-        ray,
-        { player.Character },
-        false,
-        true
-    )
-    return hit == part
-end
-
--- Find the nearest visible player
-local function getClosestVisible()
-    local closest = nil
-    local bestDist = aimFOV
-    local center =
-        Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
-
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= player and plr.Character then
-            local part = plr.Character:FindFirstChild(aimPartName)
-            if part and canSee(part) then
-                local screenPos, onScreen =
-                    camera:WorldToViewportPoint(part.Position)
-                if onScreen then
-                    local dist = (
-                        Vector2.new(screenPos.X, screenPos.Y) - center
-                    ).Magnitude
-                    if dist < bestDist then
-                        bestDist = dist
-                        closest = part
-                    end
-                end
-            end
-        end
-    end
-    return closest
-end
-
--- Aimbot loop
-local function startAimbot()
-    if aimbotConn then
-        return
-    end
-    aimbotConn = RS.RenderStepped:Connect(function()
-        if aimbotEnabled then
-            local targetPart = getClosestVisible()
-            if targetPart then
-                camera.CFrame =
-                    CFrame.new(camera.CFrame.Position, targetPart.Position)
-            end
-        end
-    end)
-end
-
-local function stopAimbot()
-    if aimbotConn then
-        aimbotConn:Disconnect()
-        aimbotConn = nil
-    end
-end
-
-local function disableFully()
-    aimbotEnabled = false
-    stopAimbot()
-    setBtnState(false)
-end
-
--- Disable on death
-local function hookHumanoid(char)
-    local hum = char and char:FindFirstChildWhichIsA('Humanoid')
-    if hum then
-        hum.Died:Connect(disableFully)
-    end
-end
-if player.Character then
-    hookHumanoid(player.Character)
-end
-player.CharacterAdded:Connect(hookHumanoid)
-
--- Toggle via panel button
-aimbotBtn.MouseButton1Click:Connect(function()
-    aimbotEnabled = not aimbotEnabled
-    setBtnState(aimbotEnabled)
-    if aimbotEnabled then
-        startAimbot()
-    else
-        stopAimbot()
-    end
-end)
-
--- Keybind P to toggle aimbot independently
-UIS.InputBegan:Connect(function(input, processed)
-    if processed then
-        return
-    end
-    if input.KeyCode == Enum.KeyCode.P then
-        aimbotEnabled = not aimbotEnabled
-        setBtnState(aimbotEnabled)
-        if aimbotEnabled then
-            startAimbot()
-        else
-            stopAimbot()
-        end
-    end
-end)
-
 -- Extra Tab: Custom Spawn Button
 local customSpawnPos
 
@@ -3015,7 +2932,7 @@ moreLabel.Position = UDim2.new(0.05, 0, 0, 50)
 moreLabel.BackgroundTransparency = 1
 moreLabel.Text = 'More coming Soon...'
 moreLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-moreLabel.Font = Enum.Font.GothamItalic
+moreLabel.Font = Enum.Font.Font.GothamBold
 moreLabel.TextSize = 16
 moreLabel.TextXAlignment = Enum.TextXAlignment.Center
 moreLabel.LayoutOrder = 110
